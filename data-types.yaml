@@ -1,0 +1,57 @@
+name: Mohamed
+# scaler data in yaml file
+age: 30
+salary: 50000.790
+is_active: true
+employment_date: 2024-06-15
+manager: Ahmed
+# string no need to be in quotes except
+# 1  see number as string
+string1: "1234567890"
+# 2 rejex expression
+string2: "^[a-zA-Z0-9]+$"
+# single quote string
+string3: "This is a single quote string" # the editor auto make it double quote but it is still a single quote string
+#here is a single quote string with new line not make new line
+string4: 'This is a\n single quote string' # This ia a\n single quote string
+# here the double quote string with new line and it will make new line
+string5: "This is a double quote string with new line\n and it will make new line"
+
+# when you write a path in yaml file you need to use double quote or single quote to avoid error
+path1: "C:\\Users\\Mohamed\\Documents\\file.txt" # use \\ to escape the backslash in the path
+path2: 'C:\Users\Mohamed\Documents\file.txt' # use only one \ as it's a single quote string and it will not escape the backslash in the path
+
+# multi-line string
+# 1- the multi-line string with | will preserve the line breaks and indentation
+multi_line_string1: |
+  This is a multi-line string
+  that preserves line breaks and indentation.
+
+# 2- the multi-line string with > will fold newlines into spaces, so it will be a single line string.
+multi_line_string2: >
+  This is a multi-line string
+  that folds newlines into spaces, so it will be a single line string.
+
+# collections
+#  1- list
+list1:
+  - item1
+  - item2
+  - item3
+#  2- list with inline style
+list2: [item1, item2, item3]
+#  3- list with inline style and multi-line string
+list3: [
+    "This is a multi-line string
+    that folds newlines into spaces, so it will be a single line string.",
+    "This is a multi-line string
+    that preserves line breaks and indentation.",
+  ]
+
+# 2- Mappings
+map1:
+  key1: value1
+  key2: value2
+  key3: value3
+
+map2: { key1: value1, key2: value2, key3: value3 }
