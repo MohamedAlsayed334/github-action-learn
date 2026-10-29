@@ -1,0 +1,35 @@
+# push  pull request  & trigger
+on: # trigger
+  push: # trigger on push event
+    branches:
+      - main
+      - "feature/**" # this mean any branch that starts with feature/ will trigger the workflow
+    paths:
+      - "src/**" # this means any changes in the src directory will trigger the workflow
+
+  pull_request: # trigger on pull request event
+    branches:
+      - main
+      - "feature/**"
+    paths:
+      - "src/**"
+
+jobs: # jobs to do if the trigger is triggered
+  example: # job name
+    runs-on: ubuntu-latest # the job will run on ubuntu-latest
+
+    steps: # steps to do in the job
+      - name: print hello world # step name
+        run: echo "Hello World" # command to run
+
+      - name: checkout # step name
+        uses: actions/checkout@v7 # action to use
+
+      - name: list files # step name
+        run: ls -la # command to run
+
+      - name: run tests
+        run: |
+          echo "Running tests"
+          npm install
+          npm test
