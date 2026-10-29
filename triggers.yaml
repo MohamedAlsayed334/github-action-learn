@@ -1,34 +1,125 @@
-# push  pull request  & trigger
-on: # trigger
-  push: # trigger on push event
-    branches:
-      - main
-      - "feature/**" # this mean any branch that starts with feature/ will trigger the workflow
-    paths:
-      - "src/**" # this means any changes in the src directory will trigger the workflow
+name: Learn Triggers
 
-  pull_request: # trigger on pull request event
+on:
+  # ─── 1) WEBHOOK EVENTS (automatic) ────────────────────────────────
+  # GitHub fires these the moment the matching activity happens.
+
+  push:
     branches:
       - main
-      - "feature/**"
+      - "feature/**" # any branch starting with "feature/"
+    paths:
+      - "src/**" # only when files under src/ change
+
+  pull_request:
+    branches:
+      - main
     paths:
       - "src/**"
+    types: # omit `types:` to use the defaults below
+      - opened
+      - synchronize # new commits pushed to the PR
+      - reopened
+      # other types: edited, labeled, unlabeled, closed, ready_for_review
 
-jobs: # jobs to do if the trigger is triggered
-  example: # job name
-    runs-on: ubuntu-latest # the job will run on ubuntu-latest
+  # ─── 2) SCHEDULED EVENTS (automatic, UTC by default) ──────────────
+  # 5-field cron:  minute hour day-of-month month day-of-week
+  # *  * * * *
+  # | | | |  |
+  # | | | |  └─── day of the week (0-7, where 0 and 7 are Sunday)
+  # | | | | └─── month (1-12)
+  # | | | └─────── day of the month (1-31)
+  # | | └───────── hour (0-23)
+  # └─────────── minute (0-59)
+  #
+  # Cron cheat sheet:
+  #   '*/15 * * * *'   every 15 minutes
+  #   '0 * * * *'      top of every hour
+  #   '0 0 * * 0'      every Sunday at 00:00 UTC
+  #   '0 0 1 * *'      first of every month at 00:00 UTC
+  #   '0 8 * * 1-5'    weekdays at 08:00 (in the given timezone)
+  #
+  # ⚠️ DST:    a slot in the skipped hour moves to the next valid time;
+  #            a slot in the repeated hour runs only once. Avoid 2–3 AM.
+  # ⚠️ Delay:  runners may start 15 min – 2 h late. Don't rely on
+  #            exact timing for anything critical.
+  # ⚠️ Branch: scheduled workflows always run on the default branch.
+  #
+  # Uncomment to enable:
 
-    steps: # steps to do in the job
-      - name: print hello world # step name
-        run: echo "Hello World" # command to run
+  schedule:
+    - cron: "0 8 * * 1-5"
+  timezone: "America/New_York" # IANA name, not an offset
 
-      - name: checkout # step name
-        uses: actions/checkout@v7 # action to use
+  # ─── 3) MANUAL TRIGGER (human-invoked) ────────────────────────────
+  # Adds a "Run workflow" button to the Actions tab.
+  # No-op until a user (or `gh workflow run`) triggers it.
 
-      - name: list files # step name
-        run: ls -la # command to run
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: "Deploy target"
+        required: true
+        default: "staging"
+        type: choice
+        options: [staging, production]
+      version:
+        description: "Version to deploy"
+        required: false
+        type: string
+      dry_run:
+        description: "Perform a dry run?"
+        type: boolean
+        default: true
 
-      - name: run tests
+  # ─── 4) API TRIGGER (machine-invoked) ─────────────────────────────
+  # Fires on POST /repos/{owner}/{repo}/dispatches when the payload's
+  # `event_type` matches one of the listed `types`. No-op until then.
+  #
+  # Example:
+  #   curl -X POST \
+  #     -H "Authorization: token $TOKEN" \
+  #     -H "Accept: application/vnd.github+json" \
+  #     -d '{"event_type":"external-event","client_payload":{"k":"v"}}' \
+  #     https://api.github.com/repos/OWNER/REPO/dispatches
+  #
+  # Read payload in a step via:  ${{ github.event.client_payload.k }}
+
+  repository_dispatch:
+    types: [external-event]
+
+  # ─── 5) REUSABLE WORKFLOW TRIGGER ─────────────────────────────────
+  # Makes this file callable from another workflow via `uses:`.
+  # Uncomment only if you intend this to be a reusable workflow.
+
+  # workflow_call:
+  #   inputs:
+  #     environment:
+  #       required: true
+  #       type: string
+  #   secrets:
+  #     token:
+  #       required: true
+
+# ─── JOBS ────────────────────────────────────────────────────────────
+
+jobs:
+  example:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print event info
+        run: |
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "Ref:          ${{ github.ref }}"
+          echo "Actor:        ${{ github.actor }}"
+
+      - name: Checkout
+        uses: actions/checkout@v4 # v4 is the current stable tag
+
+      - name: List files
+        run: ls -la
+
+      - name: Run tests
         run: |
           echo "Running tests"
           npm install
